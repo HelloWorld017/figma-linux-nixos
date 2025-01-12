@@ -33,10 +33,10 @@
 
         patches = [
           ./patches/0001-fontdir.patch
+          ./patches/0002-resize-throttle.patch
         ];
 
         npmDepsHash = "sha256-FqgcG52Nkj0wlwsHwIWTXNuIeAs7b+TPkHcg7m5D2og=";
-        dontNpmBuild = true;
 
         buildInputs = [
           pkgs.libGL
@@ -63,6 +63,14 @@
           cp -r dist/* $out/app
           cp -r node_modules $out/app
 
+          pushd lib/icons
+          for icon in *.png; do
+            dir=$out/share/icons/hicolor/"''${icon%.png}"/apps
+            mkdir -p "$dir"
+            cp "$icon" "$dir"/figma-linux.png
+          done
+          popd
+
           makeWrapper ${pkgs.electron}/bin/electron $out/bin/figma-linux \
             --prefix LD_LIBRARY_PATH : "${pkgs.lib.makeLibraryPath [ pkgs.libGL ]}" \
             --add-flags "$out/app/main/main.js" \
@@ -77,6 +85,7 @@
           (pkgs.makeDesktopItem {
             name = "figma-linux";
             desktopName = "Figma Linux";
+            icon = "figma-linux";
             exec = "figma-linux %U";
             terminal = false;
             startupWMClass = "figma-linux";

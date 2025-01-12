@@ -1,0 +1,55 @@
+diff --git a/src/main/Ui/Window.ts b/src/main/Ui/Window.ts
+index eb1702a..6ec0690 100644
+--- a/src/main/Ui/Window.ts
++++ b/src/main/Ui/Window.ts
+@@ -12,7 +12,7 @@ import {
+   NEW_PROJECT_TAB_URL,
+   NEW_FILE_TAB_TITLE,
+ } from "Const";
+-import { isDev, isCommunityUrl, isAppAuthRedeem, normalizeUrl, parseURL } from "Utils/Common";
++import { isDev, isCommunityUrl, isAppAuthRedeem, normalizeUrl, parseURL, throttle } from "Utils/Common";
+ import { panelUrlDev, panelUrlProd, toggleDetachedDevTools } from "Utils/Main";
+ import Tab from "./Tab";
+ 
+@@ -607,10 +607,10 @@ export default class Window {
+     app.on("loadCurrentTheme", this.loadCurrentTheme.bind(this));
+ 
+     this.window.on("show", this.showHandler.bind(this));
+-    this.window.on("resize", this.updateTabsBounds.bind(this));
+-    this.window.on("maximize", () => setTimeout(this.updateTabsBounds.bind(this), 100));
+-    this.window.on("unmaximize", () => setTimeout(this.updateTabsBounds.bind(this), 100));
+-    this.window.on("move", () => setTimeout(this.updateTabsBounds.bind(this), 100));
++    this.window.on("resize", throttle(this.updateTabsBounds.bind(this), 100));
++    this.window.on("maximize", throttle(this.updateTabsBounds.bind(this), 100));
++    this.window.on("unmaximize", throttle(this.updateTabsBounds.bind(this), 100));
++    this.window.on("move", () => throttle(this.updateTabsBounds.bind(this), 100));
+     this.window.on("focus", () => app.emit("windowFocus", this.window.id));
+     this.window.on("enter-full-screen", this.onEnterFullScreen.bind(this));
+     this.window.on("leave-full-screen", this.onLeaveFullScreen.bind(this));
+diff --git a/src/utils/Common/index.ts b/src/utils/Common/index.ts
+index e349b91..aa5d9b7 100644
+--- a/src/utils/Common/index.ts
++++ b/src/utils/Common/index.ts
+@@ -7,3 +7,4 @@ export * from "./isDev";
+ export * from "./themes";
+ export * from "./object";
+ export * from "./extensions";
++export * from "./throttle";
+diff --git a/src/utils/Common/throttle.ts b/src/utils/Common/throttle.ts
+new file mode 100644
+index 0000000..7159720
+--- /dev/null
++++ b/src/utils/Common/throttle.ts
+@@ -0,0 +1,12 @@
++type Action = (...args: never[]) => undefined;
++
++export const throttle = <TFunction extends Action>(fn: TFunction, delay: number): TFunction => {
++  let timeout: ReturnType<typeof setTimeout> | null = null;
++  return ((...args: Parameters<TFunction>) => {
++    if (timeout !== null) {
++      clearTimeout(timeout);
++    }
++
++    timeout = setTimeout(() => fn(...args), delay);
++  }) as TFunction;
++};
