@@ -1,0 +1,25 @@
+diff --git a/src/main/Fonts/index.ts b/src/main/Fonts/index.ts
+index 5895edd..3f92f55 100644
+--- a/src/main/Fonts/index.ts
++++ b/src/main/Fonts/index.ts
+@@ -62,7 +62,7 @@ export default class FontManager {
+         return;
+       }
+ 
+-      const find = spawnSync("find", [path, "-type", "f", "-name", wilecard]);
++      const find = spawnSync("find", [path, "-type", "f,l", "-name", wilecard]);
+ 
+       resolve(
+         find.stdout
+diff --git a/src/utils/Main/defaultSettings.ts b/src/utils/Main/defaultSettings.ts
+index ad876b0..0c43b8d 100644
+--- a/src/utils/Main/defaultSettings.ts
++++ b/src/utils/Main/defaultSettings.ts
+@@ -24,6 +24,7 @@ export const DEFAULT_SETTINGS: Types.SettingsInterface = {
+       { switch: "use-vulkan" },
+     ],
+     fontDirs: [
++      "/run/current-system/sw/share/X11/fonts",
+       "/usr/share/fonts",
+       "/usr/local/share/fonts",
+       "/run/host/fonts",
